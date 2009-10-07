@@ -1,0 +1,6 @@
+body { margin:0; padding:0; background:url(/images/wood_bg2.jpg) top left; font-family: "Helvetica Neue", arial; font-weight: 300;}
+
+#content { margin:5em; padding:1em; background:#efefef; border:1em solid #3A3288;}
+
+#all_formulas { list-style:none; margin:0; padding:0; }
+.formula { padding:1em; margin:1px; border:1px solid #000000;}

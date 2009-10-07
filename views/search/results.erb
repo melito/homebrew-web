@@ -1,0 +1,10 @@
+<% if @formulas.empty? %>
+  <p>Sorry, there doesn't appear to be any matching formulas in the network at this time.</p>
+  <a href="/">Go home</a>
+<% else %>
+  <% for formula in @formulas %>
+    <li id="formula_<%= formula.id %>" class='formula'>
+      <a href='/formula/<%= formula.id %>'><%= formula.name %></a>
+    </li>
+  <% end %>
+<% end %>

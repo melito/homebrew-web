@@ -8,30 +8,24 @@ include Grit
 
 DB = Sequel.connect("sqlite://dev.db")
 
+DB.create_table :users do
+  primary_key :id
+  String :name
+end rescue
+
 DB.create_table :formulas do
   primary_key :id
   String :name
-end
+  Integer :branch_id
+end rescue
 
 DB.create_table :branches do
   primary_key :id
-  String :user
   String :name
-  Integer :formula_id
-end
+  Integer :user_id
+end rescue
 
-class User
-  one_to_many :branches, :class => :Branch
-end
-
-class Formula < Sequel::Model
-  many_to_one :branch
-end
-
-class Branch < Sequel::Model
-  many_to_one :user
-  one_to_many :formulas, :class => :Formula
-end
+require "models/all"
 
 HOMEBREW_LOCATION = `brew --prefix`.chomp!
 
@@ -91,16 +85,18 @@ end
 def build_database_of_packages
   @repo.remotes.each do |remote|
     user, branch = remote.name.split('/')
-    user = User.find_for_create(:name => user)
-    branch = Branch.new(ref)
+    user = User.find_or_create(:name => user)
+    ref = {:user => user, :name => branch}
     
+    branch = Branch.new(ref)
     user.add_branch(branch)
     
     @repo.tree(remote.name, ["Library/Formula"]).contents.first.contents.each do |pkg|
       p pkg.name
       formula_name = pkg.name.chomp('.rb')
       formula = Formula.find_or_create(:name => formula_name)
-      formula.add_branch(branch)
+      
+      branch.add_formula(formula)
     end
   end
 end
@@ -108,7 +104,5 @@ end
 if $0 == __FILE__    
   #get_members
   #add_all_network_remotes
-  #remove_all_network_remotes
   build_database_of_packages
-
 end

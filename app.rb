@@ -1,51 +1,37 @@
 require "rubygems"
 require "sinatra"
 require "sequel"
+require "pp"
 
 DB = Sequel.connect("sqlite://dev.db")
-class Formula < Sequel::Model
-  one_to_many :branches, :class => :Branch
-end
 
-class Branch < Sequel::Model
-  many_to_one :formula
+require "models/all"
+
+helpers do
+  
 end
 
 get '/' do
+  erb :index
+end
+
+get '/formula' do
   @formulas = Formula.all
-  erb %Q{
-    
-    <% for formula in @formulas %>
-      <div><a href='/formula/<%= formula.id %>'><%= formula.name %></a></div>
-    <% end %>
-    
-  }  
+  erb "formula/index".to_sym
 end
 
 get '/formula/:id' do
   @formula = Formula[params['id']]
-  p params
-  
-  erb %Q{
-    
-    <%= @formula.name %>
-    <% for branch in @formula.branches %>
-      <div><%= branch.user %> / <%= branch.name %></div>
-    <% end %>
-    
-  }
+  erb "formula/show".to_sym
 end
 
-get '/my' do
-  @branch = Branch.find(:user => "origin", :name => "master")
-  
-  erb %Q{
-    
-    <%= @branch.user %> - <%= @branch.name %>
-    <% for formula in @branch.formula %>
-      <%= formula.last %>
-    <% end %>
-    
-  }
-  
+get '/search' do
+  erb "search/index".to_sym
+end
+
+post '/search' do
+  p params
+  @formulas = Formula.filter(:name.like "%#{params['search']}%")
+  pp @formulas
+  erb "search/results".to_sym
 end
