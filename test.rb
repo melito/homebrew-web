@@ -102,7 +102,7 @@ def build_database_of_packages
 end
 
 if $0 == __FILE__    
-  #get_members
-  #add_all_network_remotes
+  get_members
+  add_all_network_remotes
   build_database_of_packages
 end

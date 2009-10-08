@@ -1,0 +1,20 @@
+homebrew-web
+============
+
+This started off as an attempt of creating a small website for homebrew for people to search for available packages.
+
+I kinda hacked together a really janky web front end for the package manager.
+
+Since homebrew is git based, the test.rb script will do the following:
+
+  1) Get a list of all users from the homebrew network
+  2) Add each user in the network as a remote and fetch their changes
+  3) Will compile a list of what recipes are associated with what users and stick them in a sqlite database (not perfect just yet / accessing from git is VERY slow)
+
+Once test.rb is run, you can load the sinatra app and:
+
+ 1) Search for formulas available in the network
+ 2) Checkout formulas from another user's tree
+ 3) Install formulas from another user's tree
+
+This isn't perfect yet, but I think its a pretty good first attempt.
