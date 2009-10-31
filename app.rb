@@ -19,6 +19,13 @@ helpers do
       erb(template.to_sym, options)
     end
   end
+  
+  def run_in_homebrew
+    Dir.chdir(HOMEBREW_LOCATION) do
+      yield
+    end
+  end
+  
 end
 
 get '/' do
@@ -48,19 +55,19 @@ end
 
 get '/checkout/:id' do
   @formula = Formula[params['id']]
-  Dir.chdir(HOMEBREW_LOCATION) do
+  run_in_homebrew {
     cmd = "git checkout #{@formula.branch_path} Library/Formula/#{@formula.name}.rb"
     if system(cmd)
       "Successfully checked out formula"
     else
-      "Failed to check out formula :( x Infinity"
+      "<img src='/images/fail.png' />"
     end
-  end
+  }
 end
 
 get '/install/:id' do
   @formula = Formula[params['id']]
-  Dir.chdir(HOMEBREW_LOCATION) do
+  run_in_homebrew {
     cmd = "git checkout #{@formula.branch_path} Library/Formula/#{@formula.name}.rb"
     if system(cmd)
       cmd = %Q{osascript -e 'tell app "Terminal" to do script "brew install #{@formula.name}"'}
@@ -68,7 +75,7 @@ get '/install/:id' do
         "Successfully opened terminal window.  It's in Terminal.app's hands now."
       end
     else
-      "Failed to checkout formula"
+      "<img src='/images/fail.png' />"
     end
-  end
+  }
 end

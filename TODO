@@ -1,0 +1,7 @@
+Turn this into a proper app (less slop)
+Make a better design
+Turn test.rb into a rake file
+Improve the models
+More cucumber
+Support json
+Better design (one thats prettier and is easier to break down formulas on a per user basis)

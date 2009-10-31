@@ -11,19 +11,24 @@ DB = Sequel.connect("sqlite://dev.db")
 DB.create_table :users do
   primary_key :id
   String :name
-end rescue
-
-DB.create_table :formulas do
-  primary_key :id
-  String :name
-  Integer :branch_id
-end rescue
+end
 
 DB.create_table :branches do
   primary_key :id
   String :name
   Integer :user_id
-end rescue
+end
+
+DB.create_table :formulas do
+  primary_key :id
+  String :name
+  String :sha
+end
+
+DB.create_table :branches_formulas do
+  Integer :branch_id
+  Integer :formula_id
+end
 
 require "models/all"
 
@@ -85,24 +90,20 @@ end
 def build_database_of_packages
   @repo.remotes.each do |remote|
     user, branch = remote.name.split('/')
-    user = User.find_or_create(:name => user)
-    ref = {:user => user, :name => branch}
-    
-    branch = Branch.new(ref)
-    user.add_branch(branch)
+    user = User.find_or_create(:name => user)    
+    branch = user.add_branch(Branch.new(:name => branch))
     
     @repo.tree(remote.name, ["Library/Formula"]).contents.first.contents.each do |pkg|
       p pkg.name
       formula_name = pkg.name.chomp('.rb')
-      formula = Formula.find_or_create(:name => formula_name)
-      
+      formula = Formula.find_or_create(:name => formula_name, :sha => pkg.id)
       branch.add_formula(formula)
     end
   end
 end
 
 if $0 == __FILE__    
-  get_members
-  add_all_network_remotes
+  #get_members
+  #add_all_network_remotes
   build_database_of_packages
 end

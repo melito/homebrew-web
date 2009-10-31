@@ -1,7 +1,12 @@
 <div id="<%= @formula.name %>">
 	<h3><%= @formula.name %></h3>
+	<ul id="variations">
+    <% for branch in @formula.branches %>
+      <li><%= branch.user.name %> - <%= branch.name %></li>
+    <% end %>
+  </ul>
 	<ul class="options">
-		<li><a href='<%= @formula.url %>' target="_new_github_view">View on GitHub</a></li>
+		<li><a href='#' target="_new_github_view">View on GitHub</a></li>
 		<li><a href='/checkout/<%= @formula.id %>'>Checkout formula into your tree</li>
 		<li><a href='/install/<%= @formula.id %>'>Install this formula (will merge into your tree)</li>
 			
