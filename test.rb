@@ -1,37 +1,37 @@
-require "rubygems"
-require "open-uri"
-require "json"
-require "grit"
-require "sequel"
-require "pp"
-include Grit
-
-DB = Sequel.connect("sqlite://dev.db")
-
-DB.create_table :users do
-  primary_key :id
-  String :name
-end
-
-DB.create_table :branches do
-  primary_key :id
-  String :name
-  Integer :user_id
-end
-
-DB.create_table :formulas do
-  primary_key :id
-  String :name
-  String :sha
-end
-
-DB.create_table :branches_formulas do
-  Integer :branch_id
-  Integer :formula_id
-end
-
-require "models/all"
-
+#require "rubygems"
+#require "open-uri"
+#require "json"
+#require "grit"
+#require "sequel"
+#require "pp"
+#include Grit
+#
+#DB = Sequel.connect("sqlite://dev.db")
+#
+#DB.create_table :users do
+#  primary_key :id
+#  String :name
+#end
+#
+#DB.create_table :branches do
+#  primary_key :id
+#  String :name
+#  Integer :user_id
+#end
+#
+#DB.create_table :formulas do
+#  primary_key :id
+#  String :name
+#  String :sha
+#end
+#
+#DB.create_table :branches_formulas do
+#  Integer :branch_id
+#  Integer :formula_id
+#end
+#
+#require "models/all"
+#
 HOMEBREW_LOCATION = `brew --prefix`.chomp!
 
 @repo = Repo.new(HOMEBREW_LOCATION)
