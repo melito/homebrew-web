@@ -1,4 +1,6 @@
-require "rubygems"
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), 'models'))
+require File.join(File.dirname(__FILE__), 'vendor', 'gems', 'environment')
+
 require "tokyocabinet"
 require "open-uri"
 require "json"
@@ -6,6 +8,8 @@ require "grit"
 require "pp"
 include TokyoCabinet
 include Grit
+
+require "model"
 
 HOMEBREW_LOCATION = `brew --prefix`.chomp!
 
@@ -113,6 +117,29 @@ namespace :homebrew do
   desc "Prints location where homebrew is installed"
   task :location do
     puts "Homebrew is installed in: #{HOMEBREW_LOCATION}"
+  end
+  
+end
+
+namespace :db do
+  
+  desc "Builds a TokyoCabinet BDB database to help search the git repo faster"
+  task :build do
+    DB = BDB::new  # B-Tree database; keys may have multiple values
+    DB.open("test.bdb", BDB::OWRITER | BDB::OCREAT)
+    @repo = Repo.new(HOMEBREW_LOCATION)
+    
+    @repo.remotes.each do |remote|
+      user, branch = remote.name.split('/')
+      next if user == "origin"      
+      puts "Indexing: #{remote.name}"
+      
+      @repo.tree(remote.name, ["Library/Formula"]).contents.first.contents.each do |pkg|
+        formula = pkg.name.chomp('.rb')
+        DB.putdup(remote.name, formula)
+      end
+    end
+    
   end
   
 end
