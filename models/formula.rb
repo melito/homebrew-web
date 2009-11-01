@@ -1,3 +1,0 @@
-class Formula < Model
-  
-end

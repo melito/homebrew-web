@@ -1,4 +1,3 @@
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), 'models'))
 require File.join(File.dirname(__FILE__), 'vendor', 'gems', 'environment')
 
 require "tokyocabinet"
@@ -8,8 +7,6 @@ require "grit"
 require "pp"
 include TokyoCabinet
 include Grit
-
-require "model"
 
 HOMEBREW_LOCATION = `brew --prefix`.chomp!
 

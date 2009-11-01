@@ -1,8 +1,0 @@
-<h1 id="all_available_formulas">All Available Formulas</h1>
-<ul id="all_formulas">
-  <% for formula in @formulas %>
-    <li id="formula_<%= formula.id %>" class='formula'>
-	    <a href='/formula/<%= formula.id %>'><%= formula.name %></a>
-	  </li>
-  <% end %>
-</ul>

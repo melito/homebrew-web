@@ -1,5 +1,6 @@
 gem 'sinatra',             '~>0.9.4'
 gem 'tokyocabinet',        '= 1.29'
+gem 'yajl-ruby'
 
 gem 'rake',                     :only => [:test]
 gem 'rspec',                    :only => [:test]
