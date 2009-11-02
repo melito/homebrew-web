@@ -45,3 +45,18 @@ The interface is very minimal and not nice atm.
 Design contributions / ideas / criticism is welcome. 
 
 If you find this useful or like the idea of this, please contribute.
+
+
+Current rake options
+=====================================================================
+~/workspace/homebrew-web/ rake -T
+(in /Users/melgray/workspace/homebrew-web)
+rake bootstrap                   # Use this to setup everything up and get going
+rake db:build                    # Builds a TokyoCabinet BDB database to help search the git repo faster
+rake homebrew:location           # Prints location where homebrew is installed
+rake network:ls                  # Prints out all members in the homebrew network
+rake network:remotes:add[user]   # Add a user from the network as a remote (ex: rake network:remotes:add[mxcl])
+rake network:remotes:add_all     # Add all users from network as remotes and fetch (non-destructive)
+rake network:remotes:fetch       # Fetches (non-destructive) from all your remotes.
+rake network:remotes:ls          # List all remotes for your homebrew installation
+rake network:remotes:remove_all  # Remove all remotes (except origin) from your homebrew install
