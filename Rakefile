@@ -21,8 +21,19 @@ def in_homebrew
 end
 
 desc "Use this to setup everything up and get going"
-task :bootstrap do
-  
+task :bootstrap => ["network:remotes:add_all", "network:remotes:fetch", "db:build"] do
+
+  puts %Q{
+     
+     ==========================================
+                  Bootstrapped.
+     ==========================================
+     
+     You may now run "app.rb"
+     Please contribute back as this is still very hackish.
+     
+   }
+   
 end
 
 namespace :network do
@@ -52,6 +63,16 @@ namespace :network do
     desc "Add a user from the network as a remote (ex: rake network:remotes:add[mxcl])"
     task :add, [:user] => [:get_members] do |t, args|
       hit = 0
+      
+      puts %Q{
+        
+        ==========================================
+                   All network remotes
+        ==========================================
+        
+      }
+      
+      
       @members.each do |member|
         next unless args.user == member['owner']['login']
         in_homebrew {
@@ -71,6 +92,16 @@ namespace :network do
         current_list.each_line {|l| current_remotes << l.split(' ').first }
       end
       current_remotes.uniq!
+      
+      puts %Q{
+        
+        ==========================================
+              ADDING all network remotes
+        ==========================================
+        
+      }
+      
+      
       @members.each do |member|
         user = member['owner']['login']
         url  = member['url']
@@ -90,6 +121,15 @@ namespace :network do
         current_list.each_line {|l| current_remotes << l.split(' ').first }
       end
       current_remotes.uniq!
+      
+      puts %Q{
+        
+        ==========================================
+             FETCHING from all network remotes
+        ==========================================
+        
+      }
+      
       current_remotes.each do |remote|
         in_homebrew { `git fetch #{remote}` }
       end
@@ -104,9 +144,19 @@ namespace :network do
         current_list.each_line {|l| current_remotes << l.split(' ').first }
       end
       current_remotes.uniq!
+      
+      puts %Q{
+        
+        ==========================================
+              REMOVING all network remotes
+        ==========================================
+        
+      }
+      
       current_remotes.each do |remote|
         next if remote == "origin"
         in_homebrew { `git remote rm #{remote}` }
+        puts "Removed: #{remote}"
       end
     end
     
@@ -128,7 +178,7 @@ namespace :db do
   desc "Builds a TokyoCabinet BDB database to help search the git repo faster"
   task :build do
     DB = BDB::new  # B-Tree database; keys may have multiple values
-    DB.open("test.bdb", BDB::OWRITER | BDB::OCREAT)
+    DB.open("repo.bdb", BDB::OWRITER | BDB::OCREAT)
     @repo = Repo.new(HOMEBREW_LOCATION)
     
     @repo.remotes.each do |remote|

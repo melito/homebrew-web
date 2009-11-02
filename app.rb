@@ -9,7 +9,7 @@ include Grit
 
 HOMEBREW_LOCATION = `brew --prefix`.chomp!
 DB = BDB::new
-DB.open("test.bdb", BDB::OWRITER | BDB::OCREAT)   
+DB.open("repo.bdb", BDB::OWRITER | BDB::OCREAT)   
 DBC = BDBCUR::new(DB)
 REPO = Repo.new(HOMEBREW_LOCATION)
 
@@ -23,6 +23,12 @@ helpers do
       DBC.next
     end
     return results
+  end
+  
+  def in_homebrew
+    Dir.chdir(HOMEBREW_LOCATION) do |hb|
+      yield
+    end
   end
   
 end
@@ -45,16 +51,22 @@ end
 get '/preview' do
   tree = params['tree']
   formula = params['formula']
-  
-  p tree
-  p formula
-  
   (REPO.tree(tree, ["Library/Formula"]).contents.first/"#{formula}.rb").data
+end
+
+get '/install' do
+  tree = params['tree']
+  formula = params['formula']
+  puts "HIT"
+  in_homebrew {
+    `git checkout #{tree} Library/Formula/#{formula}.rb`
+    `osascript -e 'tell app "Terminal" to do script "brew install #{formula}"'`
+  }
+  
 end
 
 # FIXME: lol, sinatra won't call this
 trap("INT") {
-  #DBC.close
   #DB.close
 }
 
@@ -68,34 +80,51 @@ __END__
 		<script src="http://www.devbridge.com/projects/autocomplete/jquery/local/scripts/jquery.autocomplete.js" type="text/javascript"></script>
     
      <script type="text/javascript" charset="utf-8">
-     $(document).ready(function(){
+       $(document).ready(function(){
        
-    var preview_formula = function(path){
-     var tree     = path.split(':')[0];
-     var formula  = path.split(':')[1];
-     $.get('/preview', 
-           {"tree": tree,
-            "formula": formula},
-            function(data){ 
-              $("#preview_box").text(data);
-              $("#formula_preview").show();
-            },
-            "text"
-     );     
-    }
+         var preview_formula = function(path){
+          var tree     = path.split(':')[0];
+          var formula  = path.split(':')[1];
+          $.get('/preview', 
+                {"tree": tree,
+                 "formula": formula},
+                 function(data){ 
+                   $("#preview_box").text(data);
+                   $("#formula_preview").show();
+                 },
+                 "text"
+          );     
+         }
        
-      var a = $('#search').autocomplete({ 
-          serviceUrl:'/search',
-          minChars:2, 
-          maxHeight:500,
-          width:400,
-          zIndex: 9999,
-          deferRequestBy: 0, //miliseconds
-          onSelect: function(value, data){ 
-            $("input#current_formula").val(data);
-            preview_formula(data);
-          },
-        });
+         var install_formula = function(path){
+          var tree     = path.split(':')[0];
+          var formula  = path.split(':')[1];
+          $.get('/install', 
+                {"tree": tree,
+                 "formula": formula},
+                 function(data){},
+                 "text"
+          );     
+         }
+    
+         var a = $('#search').autocomplete({ 
+             serviceUrl:'/search',
+             minChars:2, 
+             maxHeight:500,
+             width:400,
+             zIndex: 9999,
+             deferRequestBy: 0, //miliseconds
+             onSelect: function(value, data){ 
+               $("input#current_formula").val(data);
+               preview_formula(data);
+             },
+         });
+        
+        $("input#install").click(function(){
+          alert("Installing " + $("#current_formula").val());
+          install_formula($("#current_formula").val());
+        });     
+          
       });
     </script>
     
