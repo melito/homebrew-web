@@ -10,33 +10,74 @@ DB = BDB::new
 DB.open("test.bdb", BDB::OWRITER | BDB::OCREAT)   
 DBC = BDBCUR::new(DB)
 
+helpers do
+  
+  def search_for(pkg)
+    results =[]
+    DBC.first
+    while key = DBC.key
+      results <<  [DBC.key, DBC.val].join(':') if DBC.val =~ Regexp.new(pkg)
+      DBC.next
+    end
+    return results
+  end
+  
+end
+
 get '/' do
-  %Q{
-    <div>
-      
-    </div>
-    
-  }
+  erb :index
 end
 
 get '/search' do
   content_type :json
-  results = []
   
-  DBC.first
-  while key = DBC.key
-    results << {DBC.key => DBC.val} if DBC.val =~ Regexp.new(params['pkg'])
-    DBC.next
-  end
-  
-  results.to_json
+  results = search_for(params['query'])
+  {
+    :query => params['query'],
+    :suggestions => results,
+    :data => results
+  }.to_json
 end
 
+# FIXME: lol, sinatra won't call this
+trap("INT") {
+  #DBC.close
+  #DB.close
+}
+
 __END__
-@@layout
+
+@@ layout
 <html>
   <head>
     <title>Homebrew</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+		<script src="http://www.devbridge.com/projects/autocomplete/jquery/local/scripts/jquery.autocomplete.js" type="text/javascript"></script>
+    
+     <script type="text/javascript" charset="utf-8">
+     $(document).ready(function(){
+      var a = $('#search').autocomplete({ 
+          serviceUrl:'/search',
+          minChars:2, 
+          maxHeight:400,
+          width:300,
+          zIndex: 9999,
+          deferRequestBy: 0, //miliseconds
+          onSelect: function(value, data){ 
+            alert('You selected: ' + value + ', ' + data); 
+          },
+        });
+      });
+    </script>
+    
+    <style type="text/css" media="screen">
+      /* Autocomplete: */
+      .autocomplete-w1 { position:absolute; top:0px; left:0px; margin:8px 0 0 6px;}
+      .autocomplete { border:1px solid #999; background:#FFF; cursor:default; text-align:left; max-height:350px; overflow:auto; margin:-6px 6px 6px -6px; /* IE6 specific: */ _height:350px;  _margin:0; _overflow-x:hidden; }
+      .autocomplete .selected { background:#F0F0F0; }
+      .autocomplete div { padding:2px 5px; white-space:nowrap; }
+      .autocomplete strong { font-weight:normal; color:#3399FF; }
+    </style>
   </head>
   
   <body>
@@ -44,3 +85,7 @@ __END__
   </body>
   
 </html>
+
+@@ index
+<div><input type="text" name="search" value="" id="search"></div>
+<div id="results"></div>

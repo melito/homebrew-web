@@ -20,6 +20,11 @@ def in_homebrew
   end
 end
 
+desc "Use this to setup everything up and get going"
+task :bootstrap do
+  
+end
+
 namespace :network do
 
   task :get_members do
