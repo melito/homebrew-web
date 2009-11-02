@@ -3,12 +3,15 @@ require File.join(File.dirname(__FILE__), 'vendor', 'gems', 'environment')
 require "sinatra"
 require "tokyocabinet"
 require "yajl/json_gem"
+require "grit"
 include TokyoCabinet
+include Grit
 
 HOMEBREW_LOCATION = `brew --prefix`.chomp!
 DB = BDB::new
 DB.open("test.bdb", BDB::OWRITER | BDB::OCREAT)   
 DBC = BDBCUR::new(DB)
+REPO = Repo.new(HOMEBREW_LOCATION)
 
 helpers do
   
@@ -39,6 +42,16 @@ get '/search' do
   }.to_json
 end
 
+get '/preview' do
+  tree = params['tree']
+  formula = params['formula']
+  
+  p tree
+  p formula
+  
+  (REPO.tree(tree, ["Library/Formula"]).contents.first/"#{formula}.rb").data
+end
+
 # FIXME: lol, sinatra won't call this
 trap("INT") {
   #DBC.close
@@ -56,27 +69,51 @@ __END__
     
      <script type="text/javascript" charset="utf-8">
      $(document).ready(function(){
+       
+    var preview_formula = function(path){
+     var tree     = path.split(':')[0];
+     var formula  = path.split(':')[1];
+     $.get('/preview', 
+           {"tree": tree,
+            "formula": formula},
+            function(data){ 
+              $("#preview_box").text(data);
+              $("#formula_preview").show();
+            },
+            "text"
+     );     
+    }
+       
       var a = $('#search').autocomplete({ 
           serviceUrl:'/search',
           minChars:2, 
-          maxHeight:400,
-          width:300,
+          maxHeight:500,
+          width:400,
           zIndex: 9999,
           deferRequestBy: 0, //miliseconds
           onSelect: function(value, data){ 
-            alert('You selected: ' + value + ', ' + data); 
+            $("input#current_formula").val(data);
+            preview_formula(data);
           },
         });
       });
     </script>
     
     <style type="text/css" media="screen">
+      * { padding:0; margin:0; }
+      body { background:#efefef; }
+      #wrapper { padding:2em; border:1px solid #666; }
+      input { border:1px solid #999; font-size:2em;}
+      .control { padding:1em; }
+      .button_controls { padding:0 5px 0 5px;}
+      #preview_box { border:1px solid #999; }
       /* Autocomplete: */
       .autocomplete-w1 { position:absolute; top:0px; left:0px; margin:8px 0 0 6px;}
       .autocomplete { border:1px solid #999; background:#FFF; cursor:default; text-align:left; max-height:350px; overflow:auto; margin:-6px 6px 6px -6px; /* IE6 specific: */ _height:350px;  _margin:0; _overflow-x:hidden; }
       .autocomplete .selected { background:#F0F0F0; }
       .autocomplete div { padding:2px 5px; white-space:nowrap; }
       .autocomplete strong { font-weight:normal; color:#3399FF; }
+      .autocomplete .selected { background:red; }
     </style>
   </head>
   
@@ -87,5 +124,18 @@ __END__
 </html>
 
 @@ index
-<div><input type="text" name="search" value="" id="search"></div>
-<div id="results"></div>
+<div id="wrapper">
+  <div class="control">
+    <h1 id="search_for_formulas">Search for Formulas</h1>
+    <input type="text" name="search" value="" id="search">
+  </div>
+
+  <div id="formula_preview" style="display:none;">
+    <textarea id="preview_box" rows='30' cols='80'></textarea>
+
+    <div class="control">
+      <input type="button" name="install" value="Install" id="install" class='button_controls'>
+      <input type="hidden" name="current_formula" value="" id="current_formula">
+    </div>
+  </div>  
+</div>
